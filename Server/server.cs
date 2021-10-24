@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Net;
@@ -15,13 +13,14 @@ namespace Server
 {
     public partial class serverForm : Form
     {
-        const int PORT = 30120;
-        const string IPADRESS = "127.0.0.1";
-        IPAddress localAdd;
-        TcpListener listener;
-        TcpClient cl;
-        Task th;
-        NetworkStream nwStream;
+        private const int PORT = 30120;
+        private const string IPADRESS = "127.0.0.1";
+
+        private TcpListener _serverSocket;
+        private TcpClient _clientSocket;
+
+        private List<ClientClass> _clients = new List<ClientClass>();
+
         public serverForm()
         {
             InitializeComponent();
@@ -29,78 +28,138 @@ namespace Server
 
         private void server_Load(object sender, EventArgs e)
         {
-            localAdd = IPAddress.Parse(IPADRESS);
-            listener = new TcpListener(localAdd, PORT);
-            listener.Start();
-            cl = listener.AcceptTcpClient();
-            label1.Text = "Server Started !";
-            th = new Task(lictinerThread);
-            th.Start();
+            logListView.Text = logListView.Text + "Server Loaded ...";
+            _serverSocket = new TcpListener(IPAddress.Parse(IPADRESS), PORT);
+            _serverSocket.Start();
+            logListView.Text = logListView.Text + "\nServer Started .";
+            _clientSocket = new TcpClient();
+            Task serverSocketTask = new Task(acceptClients);
+            serverSocketTask.Start();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void acceptClients()
         {
-            string textToSend = textBox1.Text;
-            if (nwStream.CanWrite)
+            int currentId = 0;
+            while (true)
             {
-                byte[] bytesToSend = ASCIIEncoding.ASCII.GetBytes(textToSend);
-                richTextBox1.Text = richTextBox1.Text + "You : " + textToSend + "\n";
-                nwStream.Write(bytesToSend, 0, bytesToSend.Length);
+                _clientSocket = _serverSocket.AcceptTcpClient();
+                var clClass = new ClientClass();
+                this.Invoke((MethodInvoker)delegate ()
+                {
+                    logListView.Text = logListView.Text + "\n" + _clientSocket.Client.LocalEndPoint + " Connected";
+                    currentId = clientComboBox.Items.Add(_clientSocket.Client.Handle);
+                    if (currentId == 0)
+                    {
+                        clientComboBox.SelectedIndex = currentId;
+                    }
+                    _clients.Add(clClass);
+                    logListView.Text = logListView.Text + "\n" + _clientSocket.Client.Handle + " added";
+                });
+                clClass.startClient(_clientSocket, currentId, chatEvent, clientMessage);
+
+                var firstData = _clientSocket.GetStream();
+                var clientIdes = _clients.Select(x => x.clientNo).ToList();
+                var jsonClientIdes = Newtonsoft.Json.JsonConvert.SerializeObject(clientIdes);
+                byte[] bytesToSend = ASCIIEncoding.ASCII.GetBytes("$$"+jsonClientIdes+"##");
+                firstData.Write(bytesToSend, 0, bytesToSend.Length);
             }
         }
 
-        private void lictinerThread()
+        private void clientMessage(object sender, EventArgs e)
         {
-            while (true)
+            var data = sender as messagePassData;
+            if (_clients.Exists(x => x.clientNo == data.from) && _clients.Exists(x => x.clientNo == data.to))
             {
-                nwStream = cl.GetStream();
-
-                if (cl != null)
+                var from = _clients.Where(x => x.clientNo == data.from).FirstOrDefault();
+                var to = _clients.Where(x => x.clientNo == data.to).FirstOrDefault();
+                if (from.clientSocket.Connected)
                 {
-                    if (!cl.Connected)
+                    if (to.clientSocket.Connected)
                     {
-                        this.Invoke((MethodInvoker)delegate ()
-                        {
-                            cl = listener.AcceptTcpClient();
-                            label1.ForeColor = Color.Red;
-                            label1.Text = "Disconnected";
-                        });
-
+                        to.sendMessage(data.message, from.clientNo.ToString());
                     }
                     else
                     {
-                        this.Invoke((MethodInvoker)delegate ()
-                        {
-                            label1.ForeColor = Color.Green;
-                            label1.Text = "Connected";
-                        });
-
+                        from.sendMessage("This Client not online");
                     }
                 }
                 else
                 {
-                    this.Invoke((MethodInvoker)delegate ()
-                    {
-                        label1.ForeColor = Color.Orange;
-                        label1.Text = "Wait for conenct";
-                    });
-
+                    from.sendMessage("Wrong in progress");
                 }
+            }
+        }
 
-                if (nwStream.CanRead)
+        private void chatEvent(object sender, EventArgs e)
+        {
+            var currentId = -1;
+            this.Invoke((MethodInvoker)delegate ()
+            {
+                currentId = clientComboBox.SelectedIndex;
+            });
+            var cl = sender as ClientClass;
+            if (cl.clientNo == currentId)
+            {
+                if (cl.chats != null)
                 {
-                    byte[] buffer = new byte[cl.ReceiveBufferSize];
-                    int bytesRead = nwStream.Read(buffer, 0, cl.ReceiveBufferSize);
-                    string dataReceived = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-
-
                     this.Invoke((MethodInvoker)delegate ()
                     {
-                        richTextBox1.Text = richTextBox1.Text + "" + cl.Client.LocalEndPoint + " : " + dataReceived + "\n";
+                        chatListView.ResetText();
                     });
-                }
 
-                Thread.Sleep(1);
+                    var chat = cl.chats.ToList();
+                    foreach (string message in chat)
+                    {
+                        this.Invoke((MethodInvoker)delegate ()
+                        {
+                            chatListView.Text = chatListView.Text + message + "\n";
+                        });
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("peyda nashode");
+            }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            if(!string.IsNullOrEmpty(textBox1.Text))
+            {
+                var currentId = clientComboBox.SelectedIndex;
+                if (_clients.Exists(x => x.clientNo == currentId))
+                {
+                    _clients.Where(x => x.clientNo == currentId).FirstOrDefault().sendMessage(textBox1.Text);
+                    textBox1.ResetText();
+                    textBox1.Focus();
+                }
+            }
+        }
+
+        private void clientComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var currentId = clientComboBox.SelectedIndex;
+            if (_clients.Exists(x => x.clientNo == currentId))
+            {
+                var clientData = _clients.Where(x => x.clientNo == currentId).FirstOrDefault();
+                chatListView.ResetText();
+                if (clientData.chats != null)
+                {
+                    var chat = clientData.chats.ToList();
+                    foreach (string message in chat)
+                    {
+                        chatListView.Text = chatListView.Text + message + "\n";
+                    }
+                }
+            }
+        }
+
+        private void textBox1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                button1_Click(this, EventArgs.Empty);
             }
         }
     }

@@ -44,7 +44,7 @@ namespace Client
                         {
                             cl = new TcpClient(SERVER_IP, PORT_NO);
                             label1.ForeColor = Color.Red;
-                            label1.Text = "Disconnecte";
+                            label1.Text = "Disconnected";
                         });
 
                     }
@@ -53,7 +53,7 @@ namespace Client
                         this.Invoke((MethodInvoker)delegate ()
                         {
                             label1.ForeColor = Color.Green;
-                            label1.Text = "Connected";
+                            label1.Text = "Connected to "+ cl.Client.RemoteEndPoint + " ( "+ cl.Client.Handle + " )";
 
                         });
                     }
@@ -76,7 +76,22 @@ namespace Client
                     int bytesRead = nwStream.Read(bytesToRead, 0, cl.ReceiveBufferSize);
                     this.Invoke((MethodInvoker)delegate ()
                     {
-                        richTextBox1.Text = richTextBox1.Text + "Server : " + Encoding.ASCII.GetString(bytesToRead, 0, bytesRead) + "\n";
+                        var serverMessage = Encoding.ASCII.GetString(bytesToRead, 0, bytesRead);
+                        if(serverMessage.StartsWith("$$") && serverMessage.EndsWith("##"))
+                        {
+                            var clients = serverMessage.Replace("$", "");
+                            clients = clients.Replace("#", "");
+                            var clientsId = Newtonsoft.Json.JsonConvert.DeserializeObject<List<string>>(clients);
+                            foreach (var item in clientsId)
+                            {
+                                comboBox1.Items.Add("Client-" + item);
+                            }
+                        }
+                        else
+                        {
+                            richTextBox1.Text = richTextBox1.Text + serverMessage + "\n";
+                        }
+                        
                     });
                 }
             }
@@ -90,11 +105,42 @@ namespace Client
 
                 if (nwStream.CanWrite)
                 {
-                    byte[] bytesToSend = ASCIIEncoding.ASCII.GetBytes(textToSend);
-                    richTextBox1.Text = richTextBox1.Text + ("You : " + textToSend + "\n");
-                    nwStream.Write(bytesToSend, 0, bytesToSend.Length);
+                    if (comboBox1.SelectedIndex == 0)
+                    {
+                        byte[] bytesToSend = ASCIIEncoding.ASCII.GetBytes(textToSend);
+                        richTextBox1.Text = richTextBox1.Text + ("You : " + textToSend);
+                        nwStream.Write(bytesToSend, 0, bytesToSend.Length);
+                        textBox1.ResetText();
+                    }
+                    else
+                    {
+                        var st = Newtonsoft.Json.JsonConvert.SerializeObject(new messagePassData()
+                        {
+                            message = textToSend,
+                            to = int.Parse(comboBox1.SelectedItem.ToString().Replace("Client-", ""))
+                        });
+                        byte[] bytesToSend = ASCIIEncoding.ASCII.GetBytes("$$" + st);
+                        richTextBox1.Text = richTextBox1.Text + ("You : " + textToSend + "\n");
+                        nwStream.Write(bytesToSend, 0, bytesToSend.Length);
+                        textBox1.ResetText();
+                    }
+                    
                 }
             }
         }
+
+        private void textBox1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                button1_Click(this, EventArgs.Empty);
+            }
+        }
+    }
+    public class messagePassData
+    {
+        public int from { get; set; }
+        public int to { get; set; }
+        public string message { get; set; }
     }
 }
