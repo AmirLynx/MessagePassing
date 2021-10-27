@@ -85,5 +85,11 @@
       <Version>13.0.1</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Message\Message.csproj">
+      <Project>{34f742c1-01c7-48d3-87fb-b0cbd3b0b351}</Project>
+      <Name>Message</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

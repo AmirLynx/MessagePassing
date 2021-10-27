@@ -77,20 +77,21 @@ namespace Client
             // label1
             // 
             this.label1.AutoSize = true;
+            this.label1.ForeColor = System.Drawing.Color.Orange;
             this.label1.Location = new System.Drawing.Point(12, 9);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(0, 13);
+            this.label1.Size = new System.Drawing.Size(79, 13);
             this.label1.TabIndex = 4;
+            this.label1.Text = "Connecting . . .";
             // 
             // comboBox1
             // 
             this.comboBox1.FormattingEnabled = true;
-            this.comboBox1.Items.AddRange(new object[] {
-            "Server"});
             this.comboBox1.Location = new System.Drawing.Point(239, 6);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(121, 21);
             this.comboBox1.TabIndex = 5;
+            this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
             // 
             // client
             // 
@@ -106,6 +107,7 @@ namespace Client
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Client Side";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.client_FormClosed);
             this.Load += new System.EventHandler(this.client_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

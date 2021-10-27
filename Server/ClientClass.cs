@@ -1,84 +1,85 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Windows.Forms;
 
 namespace Server
 {
     public class ClientClass
     {
-        public TcpClient clientSocket { get; set; }
-        public int clientNo { get; set; }
-        public EventHandler chatEvent { get; set; }
-        public EventHandler clientEvent { get; set; }
-        public List<string> chats { get; set; }
-        private NetworkStream ns { get; set; }
+        public int ID { get; set; }
+        public int socketHandel { get; set; }
+        private TcpClient socket { get; set; }
+        private Thread threading { get; set; }
+        private EventHandler readEvent { get; set; }
+        private EventHandler logEvent { get; set; }
+        private NetworkStream stream { get; set; }
+        public List<string> chat { get; private set; }
+        public bool onlineStatus { get; private set; }
 
-        public void startClient(TcpClient inClientSocket, int no, EventHandler chatEvent, EventHandler clientMessage)
+        public ClientClass(int id, TcpClient client, EventHandler read, EventHandler log)
         {
-            this.clientSocket = inClientSocket;
-            this.clientNo = no;
-            this.chatEvent += chatEvent;
-            this.clientEvent += clientMessage;
-            chats = new List<string>();
-            Thread clientThread = new Thread(processChat);
-            clientThread.Start();
-        }
-        public void sendMessage(string text, string user = "Server")
-        {
-            text = user + " : " + text;
-            byte[] bytesToSend = ASCIIEncoding.ASCII.GetBytes(text);
-            this.chats.Add(text);
-            ns.Write(bytesToSend, 0, bytesToSend.Length);
-            chatEvent.Invoke(this, EventArgs.Empty);
+            this.ID = id;
+            this.socket = client;
+            this.socketHandel = int.Parse(client.Client.Handle.ToString());
+            this.readEvent = read;
+            this.logEvent = log;
+            this.chat = new List<string>();
+            threading = new Thread(streamThread);
+            threading.Start();
         }
 
-        private void processChat()
+        public void sendClientMessage(string jsonString)
         {
-            Byte[] sendBytes = null;
-            string serverResponse = null;
+            byte[] sByte = ASCIIEncoding.ASCII.GetBytes(jsonString);
+            stream.Write(sByte, 0, sByte.Length);
+        }
 
+        private void streamThread()
+        {
             while (true)
             {
-                try
+                if (socket.Connected)
                 {
-                    ns = clientSocket.GetStream();
-                    byte[] buffer = new byte[clientSocket.ReceiveBufferSize];
-                    int bytesRead = ns.Read(buffer, 0, clientSocket.ReceiveBufferSize);
-                    string dataReceived = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                    if (dataReceived.StartsWith("$$"))
+                    stream = socket.GetStream();
+                    if (stream.CanRead)
                     {
-                        var conv = Newtonsoft.Json.JsonConvert.DeserializeObject<messagePassData>(dataReceived.Replace("$", ""));
-                        clientEvent.Invoke(new messagePassData() 
-                        {
-                            from = this.clientNo,
-                            to = conv.to,
-                            message = conv.message
-                        }, EventArgs.Empty);
+                        byte[] buffer = new byte[socket.ReceiveBufferSize];
+                        int bytesRead = stream.Read(buffer, 0, socket.ReceiveBufferSize);
+                        string dataReceived = ASCIIEncoding.ASCII.GetString(buffer, 0, bytesRead);
+                        var messageData = JsonConvert.DeserializeObject<Message.MessageClass>(dataReceived);
+                        readEvent(messageData.jsonString, new Message.typeEventArgs(messageData.type));
                     }
                     else
                     {
-                        this.chats.Add("Client: " + dataReceived);
-                        serverResponse = " (Recived)";
-                        sendBytes = Encoding.ASCII.GetBytes(serverResponse);
-                        ns.Write(sendBytes, 0, sendBytes.Length);
-                        ns.Flush();
-                        chatEvent.Invoke(this, EventArgs.Empty);
+                        logEvent.Invoke($"error | {ID}({socketHandel}) : client cant read stram", EventArgs.Empty);
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    this.chats.Add(ex.Message);
+                    socket.Close();
+                    threading.Abort();
                 }
             }
         }
-    }
-    public class messagePassData
-    {
-        public int from { get; set; }
-        public int to { get; set; }
-        public string message { get; set; }
+
+        public void stopThraed()
+        {
+            logEvent.Invoke($"Client Log Out {this.socketHandel}", EventArgs.Empty);
+            this.onlineStatus = false;
+            this.threading.Abort();
+        }
+
+        public void changeStatus(bool stat)
+        {
+            this.onlineStatus = stat;
+        }
+
+        public bool isOnline()
+        {
+            return socket.Connected && threading.IsAlive;
+        }
     }
 }
