@@ -14,8 +14,8 @@ namespace Server
 {
     public partial class serverForm : Form
     {
-        private const int PORT = 30120;
-        private const string IPADRESS = "127.0.0.1";
+        private int PORT = 30120;
+        private IPAddress IPADRESS = IPAddress.Parse("127.0.0.1");
 
         private TcpListener _serverSocket;
         private TcpClient _clientSocket;
@@ -23,18 +23,21 @@ namespace Server
 
         private List<ClientClass> _clients = new List<ClientClass>();
 
-        public serverForm()
+        public serverForm(IPAddress ip, int port)
         {
+            PORT = port;
+            IPADRESS = ip;
             InitializeComponent();
         }
 
         private void server_Load(object sender, EventArgs e)
         {
             logListView.Text = logListView.Text + "Server Loaded ...";
+            _serverSocket = new TcpListener(IPADRESS, PORT);
             logListView.Text = logListView.Text + "\nStablished connection ...";
-            _serverSocket = new TcpListener(IPAddress.Parse(IPADRESS), PORT);
             _serverSocket.Start();
             logListView.Text = logListView.Text + "\nServer started .";
+            logListView.Text = logListView.Text + "\nip " + IPADRESS + ":" + PORT;
             _clientSocket = new TcpClient();
             Task serverSocketTask = new Task(acceptClients);
             serverSocketTask.Start();
@@ -49,6 +52,9 @@ namespace Server
                 this.Invoke((MethodInvoker)delegate ()
                 {
                     logListView.Text = logListView.Text + "\n" + _clientSocket.Client.LocalEndPoint + " Connected";
+                    logListView.SelectionStart = logListView.Text.Length;
+                    logListView.ScrollToCaret();
+
                     clientComboBox.Items.Add(_clientSocket.Client.Handle);
                     if (nextId == 0)
                     {
@@ -83,6 +89,8 @@ namespace Server
             this.Invoke((MethodInvoker)delegate ()
             {
                 logListView.Text = logListView.Text + "\n" + sender.ToString();
+                logListView.SelectionStart = logListView.Text.Length;
+                logListView.ScrollToCaret();
             });
         }
 
@@ -106,7 +114,7 @@ namespace Server
                                     string tempForward = Newtonsoft.Json.JsonConvert.SerializeObject(tempSender);
                                     var tempMessage = Newtonsoft.Json.JsonConvert.SerializeObject(new Message.MessageClass(Message.MessageType.forward, tempForward));
                                     toClient.sendClientMessage(tempMessage);
-                                    server_logEventHandler($"Client {tempSender.from} send message to {tempSender.to} (Message : {tempSender.message})", EventArgs.Empty);
+                                    server_logEventHandler($"{tempSender.from} to {tempSender.to} (Message : {tempSender.message})", EventArgs.Empty);
                                 }
                             }
                             break;
@@ -116,10 +124,12 @@ namespace Server
                             if (tempClient.isOnline())
                             {
                                 tempClient.chat.Add($"{tempClient.socketHandel} : {tempServer.message}");
-                                server_logEventHandler($"You Recive New Message From {tempClient.socketHandel}", EventArgs.Empty);
+                                server_logEventHandler($"New Message From {tempClient.socketHandel}", EventArgs.Empty);
                                 if (clientComboBox.SelectedItem.ToString() == tempClient.socketHandel.ToString())
                                 {
                                     chatListView.Text = chatListView.Text + tempClient.socketHandel + " : " + tempServer.message + "\n";
+                                    chatListView.SelectionStart = chatListView.Text.Length;
+                                    chatListView.ScrollToCaret();
                                 }
 
                             }
@@ -175,6 +185,8 @@ namespace Server
                     if (clientComboBox.SelectedItem.ToString() == selectedClient.socketHandel.ToString())
                     {
                         chatListView.Text = chatListView.Text + "Server : " + textBox1.Text + "\n";
+                        chatListView.SelectionStart = chatListView.Text.Length;
+                        chatListView.ScrollToCaret();
                     }
                     textBox1.ResetText();
                     textBox1.Focus();
@@ -196,6 +208,8 @@ namespace Server
                     foreach (string message in chat)
                     {
                         chatListView.Text = chatListView.Text + message + "\n";
+                        chatListView.SelectionStart = chatListView.Text.Length;
+                        chatListView.ScrollToCaret();
                     }
                 }
             }

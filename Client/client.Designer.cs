@@ -34,6 +34,7 @@ namespace Client
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
+            this.btn_changeIp = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // button1
@@ -86,18 +87,32 @@ namespace Client
             // 
             // comboBox1
             // 
+            this.comboBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.comboBox1.FormattingEnabled = true;
-            this.comboBox1.Location = new System.Drawing.Point(239, 6);
+            this.comboBox1.Location = new System.Drawing.Point(187, 4);
             this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(121, 21);
+            this.comboBox1.Size = new System.Drawing.Size(72, 21);
             this.comboBox1.TabIndex = 5;
             this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
+            // 
+            // btn_changeIp
+            // 
+            this.btn_changeIp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_changeIp.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btn_changeIp.Location = new System.Drawing.Point(265, 4);
+            this.btn_changeIp.Name = "btn_changeIp";
+            this.btn_changeIp.Size = new System.Drawing.Size(95, 23);
+            this.btn_changeIp.TabIndex = 6;
+            this.btn_changeIp.Text = "Change Ip";
+            this.btn_changeIp.UseVisualStyleBackColor = true;
+            this.btn_changeIp.Click += new System.EventHandler(this.btn_changeIp_Click);
             // 
             // client
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(375, 411);
+            this.Controls.Add(this.btn_changeIp);
             this.Controls.Add(this.comboBox1);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.textBox1);
@@ -121,6 +136,7 @@ namespace Client
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ComboBox comboBox1;
+        private System.Windows.Forms.Button btn_changeIp;
     }
 }
 

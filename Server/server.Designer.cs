@@ -45,7 +45,7 @@ namespace Server
             // 
             this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button1.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.button1.Location = new System.Drawing.Point(320, 322);
+            this.button1.Location = new System.Drawing.Point(276, 322);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(87, 23);
             this.button1.TabIndex = 1;
@@ -63,7 +63,7 @@ namespace Server
             this.logListView.Location = new System.Drawing.Point(6, 19);
             this.logListView.Name = "logListView";
             this.logListView.ReadOnly = true;
-            this.logListView.Size = new System.Drawing.Size(215, 326);
+            this.logListView.Size = new System.Drawing.Size(259, 326);
             this.logListView.TabIndex = 2;
             this.logListView.TabStop = false;
             this.logListView.Text = "";
@@ -74,7 +74,7 @@ namespace Server
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox1.Location = new System.Drawing.Point(6, 325);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(308, 20);
+            this.textBox1.Size = new System.Drawing.Size(264, 20);
             this.textBox1.TabIndex = 4;
             this.textBox1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBox1_KeyDown);
             // 
@@ -88,7 +88,7 @@ namespace Server
             this.chatListView.Location = new System.Drawing.Point(6, 46);
             this.chatListView.Name = "chatListView";
             this.chatListView.ReadOnly = true;
-            this.chatListView.Size = new System.Drawing.Size(401, 270);
+            this.chatListView.Size = new System.Drawing.Size(357, 270);
             this.chatListView.TabIndex = 5;
             this.chatListView.TabStop = false;
             this.chatListView.Text = "";
@@ -100,7 +100,7 @@ namespace Server
             this.serverLog.Controls.Add(this.logListView);
             this.serverLog.Location = new System.Drawing.Point(12, 12);
             this.serverLog.Name = "serverLog";
-            this.serverLog.Size = new System.Drawing.Size(227, 351);
+            this.serverLog.Size = new System.Drawing.Size(271, 351);
             this.serverLog.TabIndex = 6;
             this.serverLog.TabStop = false;
             this.serverLog.Text = "Server Log";
@@ -115,9 +115,9 @@ namespace Server
             this.groupBox1.Controls.Add(this.chatListView);
             this.groupBox1.Controls.Add(this.button1);
             this.groupBox1.Controls.Add(this.textBox1);
-            this.groupBox1.Location = new System.Drawing.Point(245, 12);
+            this.groupBox1.Location = new System.Drawing.Point(289, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(413, 351);
+            this.groupBox1.Size = new System.Drawing.Size(369, 351);
             this.groupBox1.TabIndex = 7;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Client Chat Box";
@@ -125,7 +125,7 @@ namespace Server
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(9, 23);
+            this.label1.Location = new System.Drawing.Point(6, 23);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(70, 13);
             this.label1.TabIndex = 7;
@@ -137,9 +137,9 @@ namespace Server
             | System.Windows.Forms.AnchorStyles.Right)));
             this.clientComboBox.Cursor = System.Windows.Forms.Cursors.Hand;
             this.clientComboBox.FormattingEnabled = true;
-            this.clientComboBox.Location = new System.Drawing.Point(95, 19);
+            this.clientComboBox.Location = new System.Drawing.Point(124, 20);
             this.clientComboBox.Name = "clientComboBox";
-            this.clientComboBox.Size = new System.Drawing.Size(219, 21);
+            this.clientComboBox.Size = new System.Drawing.Size(146, 21);
             this.clientComboBox.TabIndex = 6;
             this.clientComboBox.SelectedIndexChanged += new System.EventHandler(this.clientComboBox_SelectedIndexChanged);
             // 
